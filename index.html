@@ -6,6 +6,7 @@
     <title>Studio Hub: Critical Iteration</title>
     <style>
         :root {
+            /* Light Mode Variables */
             --bg-color: #f4f4f9;
             --card-bg: #ffffff;
             --text-main: #1a1a1a;
@@ -13,29 +14,70 @@
             --accent-color: #003366;
             --accent-hover: #002244;
             --border-color: #cccccc;
+            --die-bg: #ffffff;
+            --die-border: #003366;
+            --die-text: #003366;
             --focus-outline: 3px solid #ffbf47;
             --die-size: 120px;
         }
 
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-color: #4da6ff;
+            --accent-hover: #3399ff;
+            --border-color: #333333;
+            --die-bg: #2c2c2c;
+            --die-border: #4da6ff;
+            --die-text: #4da6ff;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; transition: background-color 0.3s, color 0.3s; }
         
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
         a:focus, button:focus, input:focus, textarea:focus { outline: var(--focus-outline); outline-offset: 2px; }
 
+        /* Header & Layout */
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        header { margin-bottom: 2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 1rem; }
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 2rem; 
+            border-bottom: 2px solid var(--border-color); 
+            padding-bottom: 1rem; 
+        }
         h1 { font-size: 2.5rem; color: var(--accent-color); }
         .subtitle { font-size: 1.2rem; color: var(--text-secondary); }
+
+        /* Dark Mode Toggle Button */
+        #theme-toggle {
+            background: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        #theme-toggle:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
 
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background-color 0.3s, border-color 0.3s; }
         .card h2 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent-color); }
         .card p { margin-bottom: 1rem; color: var(--text-secondary); }
 
-        label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: var(--text-main); }
         input[type="text"], textarea {
             width: 100%;
             padding: 0.75rem;
@@ -43,6 +85,8 @@
             border-radius: 4px;
             font-family: inherit;
             margin-bottom: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-main);
         }
         textarea { height: 120px; resize: vertical; }
 
@@ -63,14 +107,18 @@
         .btn-secondary:hover { background-color: var(--accent-color); color: white; }
 
         #prompt-output {
-            background-color: #f0f4f8;
+            background-color: rgba(0,0,0,0.05);
             padding: 1rem;
             border-left: 4px solid var(--accent-color);
             margin-top: 1rem;
             display: none;
+            border-radius: 4px;
         }
+        [data-theme="dark"] #prompt-output { background-color: rgba(255,255,255,0.1); }
+        
         #prompt-output h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
-        #prompt-text { font-family: monospace; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; }
+        #prompt-text { font-family: monospace; background: rgba(0,0,0,0.05); padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; white-space: pre-wrap; color: var(--text-main); }
+        [data-theme="dark"] #prompt-text { background: rgba(255,255,255,0.1); }
         
         .copy-btn {
             margin-top: 10px;
@@ -79,23 +127,23 @@
         }
 
         #workflow-log { list-style: none; margin-top: 1rem; max-height: 300px; overflow-y: auto; }
-        .log-item { padding: 0.5rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .log-item { padding: 0.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
         .log-time { font-weight: bold; color: var(--accent-color); }
         .log-action { color: var(--text-secondary); }
 
-        /* --- 3D DIE STYLES (FIXED) --- */
+        /* --- 3D DIE STYLES (CENTERED & SMOOTH) --- */
         .die-container {
             width: 100%;
             height: 350px;
-            background: #e0e0e0;
+            background: var(--bg-color); /* Matches page bg */
             border-radius: 8px;
             position: relative;
             overflow: hidden;
             cursor: pointer;
             border: 2px solid var(--border-color);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; /* Horizontally Center */
+            align-items: center;     /* Vertically Center */
             margin-bottom: 1rem;
             perspective: 1000px;
         }
@@ -106,25 +154,25 @@
             position: relative;
             transform-style: preserve-3d;
             /* No transition here during rolling, we set it via JS */
-            transition: transform 1.5s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
         .die-face {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: white;
-            border: 3px solid var(--accent-color);
+            background: var(--die-bg);
+            border: 3px solid var(--die-border);
             border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 1.2rem;
             font-weight: bold;
-            color: var(--accent-color);
+            color: var(--die-text);
             box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
             backface-visibility: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
         }
 
         /* Positioning the 6 faces */
@@ -140,7 +188,7 @@
             bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255,255,255,0.95);
+            background: var(--card-bg);
             padding: 8px 20px;
             border-radius: 20px;
             font-weight: bold;
@@ -148,6 +196,7 @@
             pointer-events: none;
             z-index: 10;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
         }
 
         footer { margin-top: 4rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border-color); padding-top: 2rem; }
@@ -159,8 +208,11 @@
 
     <div class="container">
         <header>
-            <h1>Studio Hub: Critical Iteration</h1>
-            <p class="subtitle">3D Die Workflow Generator</p>
+            <div>
+                <h1>Studio Hub: Critical Iteration</h1>
+                <p class="subtitle">3D Die Workflow Generator</p>
+            </div>
+            <button id="theme-toggle" aria-label="Toggle Dark Mode">Dark Mode</button>
         </header>
 
         <main id="main-content" class="dashboard-grid">
@@ -207,7 +259,7 @@
                         <button class="btn copy-btn" onclick="copyPrompt()">Copy to Clipboard</button>
                     </div>
 
-                    <div style="margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem;">
+                    <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
                         <h3>Session Log</h3>
                         <ul id="workflow-log">
                             <!-- Log items will appear here -->
@@ -247,10 +299,28 @@
         const workflowLog = document.getElementById('workflow-log');
         const projectNameInput = document.getElementById('project-name');
         const projectIntentInput = document.getElementById('project-intent');
+        const themeToggle = document.getElementById('theme-toggle');
 
         let isRolling = false;
         let rollInterval;
+        let currentRotationX = 0;
+        let currentRotationY = 0;
 
+        // --- DARK MODE LOGIC ---
+        themeToggle.addEventListener('click', () => {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                body.removeAttribute('data-theme');
+                themeToggle.textContent = "Dark Mode";
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = "Light Mode";
+            }
+        });
+
+        // --- ROLL LOGIC (SMOOTHED) ---
         function rollDie() {
             if (isRolling) return;
             
@@ -258,58 +328,63 @@
             statusDiv.textContent = "Rolling...";
             promptOutput.style.display = "none";
             
-            // Remove any existing transition to allow instant spinning
+            // Remove transition to allow instant updates during roll
             die.style.transition = 'none';
             
-            // Start the rapid rotation loop
-            let rotationX = 0;
-            let rotationY = 0;
+            // Determine result BEFORE rolling
+            const resultIndex = Math.floor(Math.random() * 6) + 1;
+            const mode = modeNames[resultIndex - 1];
+
+            // Map result to specific rotation
+            const rotations = {
+                1: { x: 0, y: 0 },
+                2: { x: 0, y: -90 },
+                3: { x: 0, y: -180 },
+                4: { x: 0, y: 90 },
+                5: { x: -90, y: 0 },
+                6: { x: 90, y: 0 }
+            };
             
-            rollInterval = setInterval(() => {
-                // Randomly rotate X and Y to simulate tumbling
-                rotationX += (Math.random() * 100 - 50);
-                rotationY += (Math.random() * 100 - 50);
-                die.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-            }, 50);
+            const targetRot = rotations[resultIndex];
+            
+            // Calculate total rotation needed (add 3 full spins = 1080deg)
+            // We add random extra spins to make it look different each time
+            const extraSpins = 3 + Math.floor(Math.random() * 2); 
+            const totalX = targetRot.x + (extraSpins * 360);
+            const totalY = targetRot.y + (extraSpins * 360);
 
-            // Stop rolling after 1.5 seconds and land on result
-            setTimeout(() => {
-                clearInterval(rollInterval);
-                
-                // Determine result
-                const resultIndex = Math.floor(Math.random() * 6) + 1;
-                const mode = modeNames[resultIndex - 1];
+            // Start the smooth rolling animation
+            let startTime = null;
+            const duration = 1500; // 1.5 seconds
 
-                // Map result to specific rotation
-                const rotations = {
-                    1: { x: 0, y: 0 },
-                    2: { x: 0, y: -90 },
-                    3: { x: 0, y: -180 },
-                    4: { x: 0, y: 90 },
-                    5: { x: -90, y: 0 },
-                    6: { x: 90, y: 0 }
-                };
+            function animateRoll(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = (timestamp - startTime) / duration;
 
-                const rot = rotations[resultIndex];
-                
-                // Add extra spins (3 full rotations = 1080deg) to the current rotation
-                // This ensures it lands smoothly from wherever it was spinning
-                const finalX = rot.x + 1080; 
-                const finalY = rot.y + 1080;
+                if (progress < 1) {
+                    // Easing function: easeOutCubic (starts fast, slows down)
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    
+                    // Interpolate rotation
+                    const currentX = ease * totalX;
+                    const currentY = ease * totalY;
+                    
+                    die.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+                    requestAnimationFrame(animateRoll);
+                } else {
+                    // Animation complete
+                    die.style.transform = `rotateX(${totalX}deg) rotateY(${totalY}deg)`;
+                    
+                    setTimeout(() => {
+                        statusDiv.textContent = `Result: ${mode}`;
+                        generatePrompt(mode);
+                        addToLog(mode);
+                        isRolling = false;
+                    }, 100);
+                }
+            }
 
-                // Add transition back for the smooth landing
-                die.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.9, 0.2, 1)';
-                die.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
-
-                // Wait for landing animation to finish
-                setTimeout(() => {
-                    statusDiv.textContent = `Result: ${mode}`;
-                    generatePrompt(mode);
-                    addToLog(mode);
-                    isRolling = false;
-                }, 1500);
-
-            }, 1500);
+            requestAnimationFrame(animateRoll);
         }
 
         function generatePrompt(mode) {
