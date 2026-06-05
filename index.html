@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Hub: Physics Die Dashboard</title>
-    <!-- Load 3D Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <title>Studio Hub: Critical Iteration</title>
     <style>
         :root {
             --bg-color: #f4f4f9;
@@ -20,7 +17,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
         
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
         a:focus, button:focus, input:focus, textarea:focus { outline: var(--focus-outline); outline-offset: 2px; }
@@ -85,8 +82,8 @@
         .log-time { font-weight: bold; color: var(--accent-color); }
         .log-action { color: var(--text-secondary); }
 
-        /* 3D Container Styles */
-        #die-container {
+        /* --- DIE STYLES --- */
+        .die-container {
             width: 100%;
             height: 300px;
             background: #e0e0e0;
@@ -99,13 +96,59 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 1rem;
+            perspective: 1000px;
         }
-        
-        #die-canvas {
+
+        .die {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.1, 0.9, 0.2, 1);
+            /* Start in center */
+            top: 50%;
+            left: 50%;
+            margin-top: -50px;
+            margin-left: -50px;
+        }
+
+        .die.rolling {
+            animation: bounce-roll 1.5s ease-in-out;
+        }
+
+        @keyframes bounce-roll {
+            0% { transform: translate(0, 0) rotate(0deg) rotateY(0deg); }
+            20% { transform: translate(20px, -20px) rotate(180deg) rotateY(90deg); }
+            40% { transform: translate(-20px, 20px) rotate(360deg) rotateY(180deg); }
+            60% { transform: translate(20px, 20px) rotate(540deg) rotateY(270deg); }
+            80% { transform: translate(-10px, -10px) rotate(720deg) rotateY(360deg); }
+            100% { transform: translate(0, 0) rotate(720deg) rotateY(360deg); }
+        }
+
+        .die-face {
+            position: absolute;
             width: 100%;
             height: 100%;
-            display: block;
+            background: white;
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            backface-visibility: hidden;
         }
+
+        /* Face Positions */
+        .face-1 { transform: rotateY(0deg) translateZ(50px); }
+        .face-2 { transform: rotateY(90deg) translateZ(50px); }
+        .face-3 { transform: rotateY(180deg) translateZ(50px); }
+        .face-4 { transform: rotateY(-90deg) translateZ(50px); }
+        .face-5 { transform: rotateX(90deg) translateZ(50px); }
+        .face-6 { transform: rotateX(-90deg) translateZ(50px); }
 
         #die-status {
             position: absolute;
@@ -131,7 +174,7 @@
     <div class="container">
         <header>
             <h1>Studio Hub: Critical Iteration</h1>
-            <p class="subtitle">Physics-Based AI Workflow Generator</p>
+            <p class="subtitle">Simulated Physics Workflow Generator</p>
         </header>
 
         <main id="main-content" class="dashboard-grid">
@@ -151,8 +194,15 @@
                     <div style="margin-top: 1rem;">
                         <p style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Click the box to roll the die!</p>
                         
-                        <div id="die-container" role="button" tabindex="0" aria-label="Roll the physics die">
-                            <canvas id="die-canvas"></canvas>
+                        <div id="die-container" role="button" tabindex="0" aria-label="Roll the die">
+                            <div class="die" id="die">
+                                <div class="die-face face-1">Think</div>
+                                <div class="die-face face-2">Read</div>
+                                <div class="die-face face-3">Write</div>
+                                <div class="die-face face-4">Talk</div>
+                                <div class="die-face face-5">Draw</div>
+                                <div class="die-face face-6">Model</div>
+                            </div>
                             <div id="die-status">Click to Roll</div>
                         </div>
                     </div>
@@ -201,127 +251,18 @@
 
         const modeNames = ["Think", "Read", "Write", "Talk", "Draw", "Model"];
 
-        // --- PHYSICS & 3D SETUP ---
-        let scene, camera, renderer, world, dieBody, dieMesh;
-        let isRolling = false;
-        let lastRollTime = 0;
-        
-        const container = document.getElementById('die-container');
-        const canvas = document.getElementById('die-canvas');
+        // --- DOM ELEMENTS ---
+        const die = document.getElementById('die');
+        const dieContainer = document.getElementById('die-container');
         const statusDiv = document.getElementById('die-status');
+        const promptOutput = document.getElementById('prompt-output');
+        const promptText = document.getElementById('prompt-text');
+        const outputModeSpan = document.getElementById('output-mode');
+        const workflowLog = document.getElementById('workflow-log');
+        const projectNameInput = document.getElementById('project-name');
+        const projectIntentInput = document.getElementById('project-intent');
 
-        function initPhysics() {
-            // 1. Three.js Setup
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xe0e0e0);
-
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-            camera.position.set(0, 5, 8);
-            camera.lookAt(0, 0, 0);
-
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.shadowMap.enabled = true;
-
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(5, 10, 7);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
-
-            // 2. Cannon.js Setup
-            world = new CANNON.World();
-            world.gravity.set(0, -9.82, 0);
-            world.broadphase = new CANNON.NaiveBroadphase();
-            world.solver.iterations = 10;
-
-            // Materials
-            const dieMaterial = new CANNON.Material();
-            const floorMaterial = new CANNON.Material();
-            const wallMaterial = new CANNON.Material();
-
-            const dieFloorContact = new CANNON.ContactMaterial(floorMaterial, dieMaterial, { friction: 0.1, restitution: 0.5 });
-            const dieWallContact = new CANNON.ContactMaterial(wallMaterial, dieMaterial, { friction: 0.1, restitution: 0.5 });
-            world.addContactMaterial(dieFloorContact);
-            world.addContactMaterial(dieWallContact);
-
-            // 3. Create Box (Walls)
-            const boxSize = 3.5;
-            const wallThickness = 0.2;
-            
-            // Floor
-            const floorBody = new CANNON.Body({ mass: 0, material: floorMaterial });
-            floorBody.addShape(new CANNON.Box(new CANNON.Vec3(boxSize, wallThickness, boxSize)));
-            floorBody.position.set(0, -boxSize/2, 0);
-            world.addBody(floorBody);
-
-            // Walls (4 sides)
-            const wallShape = new CANNON.Box(new CANNON.Vec3(boxSize, boxSize, wallThickness));
-            const wallPositions = [
-                { pos: [0, 0, boxSize], rot: [0, 0, 0] }, // Front
-                { pos: [0, 0, -boxSize], rot: [0, Math.PI, 0] }, // Back
-                { pos: [boxSize, 0, 0], rot: [0, Math.PI/2, 0] }, // Right
-                { pos: [-boxSize, 0, 0], rot: [0, -Math.PI/2, 0] } // Left
-            ];
-
-            wallPositions.forEach(w => {
-                const wallBody = new CANNON.Body({ mass: 0, material: wallMaterial });
-                wallBody.addShape(wallShape);
-                wallBody.position.set(...w.pos);
-                const q = new CANNON.Quaternion();
-                q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), w.rot[1]);
-                wallBody.quaternion.copy(q);
-                world.addBody(wallBody);
-            });
-
-            // 4. Create Die
-            const dieSize = 1;
-            const dieShape = new CANNON.Box(new CANNON.Vec3(dieSize/2, dieSize/2, dieSize/2));
-            dieBody = new CANNON.Body({ mass: 1, material: dieMaterial });
-            dieBody.addShape(dieShape);
-            dieBody.position.set(0, 2, 0);
-            dieBody.linearDamping = 0.1;
-            dieBody.angularDamping = 0.1;
-            world.addBody(dieBody);
-
-            // Die Visuals
-            const geometry = new THREE.BoxGeometry(dieSize, dieSize, dieSize);
-            const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            dieMesh = new THREE.Mesh(geometry, material);
-            dieMesh.castShadow = true;
-            scene.add(dieMesh);
-
-            // Add Textures to Die Faces (Simple colored dots for now, or we can use textures)
-            // For simplicity in this code, we will rely on rotation logic to determine the face.
-            // We will map the rotation to the face index.
-
-            // Animation Loop
-            animate();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            // Step physics
-            world.step(1 / 60);
-
-            // Sync mesh with body
-            dieMesh.position.copy(dieBody.position);
-            dieMesh.quaternion.copy(dieBody.quaternion);
-
-            // Check if rolling has stopped
-            if (isRolling) {
-                const velocity = dieBody.velocity.length();
-                const angularVelocity = dieBody.angularVelocity.length();
-                
-                if (velocity < 0.1 && angularVelocity < 0.1) {
-                    isRolling = false;
-                    determineResult();
-                }
-            }
-        }
+        let isRolling = false;
 
         function rollDie() {
             if (isRolling) return;
@@ -329,85 +270,53 @@
             isRolling = true;
             statusDiv.textContent = "Rolling...";
             promptOutput.style.display = "none";
+            die.classList.add('rolling');
 
-            // Reset position
-            dieBody.position.set(0, 2, 0);
-            dieBody.velocity.set(0, 0, 0);
-            dieBody.angularVelocity.set(0, 0, 0);
+            // Simulate physics by adding random rotations
+            // We add extra spins (360 * n) to make it look like it's tumbling
+            const xRot = Math.floor(Math.random() * 4) * 360 + 90; // Random multiple of 360 + 90
+            const yRot = Math.floor(Math.random() * 4) * 360 + 90;
             
-            // Random throw force
-            const force = 5 + Math.random() * 5;
-            const direction = new CANNON.Vec3(
-                (Math.random() - 0.5) * 2,
-                (Math.random() - 0.5) * 2,
-                (Math.random() - 0.5) * 2
-            ).normalize().scale(force);
+            // Determine result BEFORE animation ends to ensure consistency
+            const resultIndex = Math.floor(Math.random() * 6) + 1;
+            const mode = modeNames[resultIndex - 1];
+
+            // Map result to specific rotation that shows the correct face
+            // Face 1 (Think): 0,0
+            // Face 2 (Read): 0, -90
+            // Face 3 (Write): 0, -180
+            // Face 4 (Talk): 0, 90
+            // Face 5 (Draw): -90, 0
+            // Face 6 (Model): 90, 0
             
-            dieBody.applyImpulse(direction, new CANNON.Vec3(0, 0, 0));
-            
-            // Random spin
-            dieBody.angularVelocity.set(
-                Math.random() * 10,
-                Math.random() * 10,
-                Math.random() * 10
-            );
+            const rotations = {
+                1: { x: 0, y: 0 },
+                2: { x: 0, y: -90 },
+                3: { x: 0, y: -180 },
+                4: { x: 0, y: 90 },
+                5: { x: -90, y: 0 },
+                6: { x: 90, y: 0 }
+            };
+
+            const rot = rotations[resultIndex];
+            // Add extra spins for visual effect
+            const finalX = rot.x + (Math.floor(Math.random() * 3) * 360);
+            const finalY = rot.y + (Math.floor(Math.random() * 3) * 360);
+
+            // Apply transform after a short delay to ensure the 'rolling' class starts
+            setTimeout(() => {
+                die.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+            }, 50);
+
+            // Wait for animation to finish (1.5s)
+            setTimeout(() => {
+                die.classList.remove('rolling');
+                statusDiv.textContent = `Result: ${mode}`;
+                generatePrompt(mode);
+                addToLog(mode);
+                isRolling = false;
+            }, 1500);
         }
-
-        function determineResult() {
-            // Determine which face is up based on rotation
-            // This is a simplified check. In a real app, you might use dot products with the world up vector.
-            // We will map the final rotation to the closest face.
-            
-            // Get the quaternion of the die
-            const q = dieBody.quaternion;
-            const up = new THREE.Vector3(0, 1, 0);
-            
-            // Transform the local "up" vector of the die to world space
-            // The die faces are aligned with axes. 
-            // Face 1 (Think): +Y (0,1,0)
-            // Face 2 (Read): -Y (0,-1,0) -> Actually let's map standard die layout
-            // Let's define local axes for faces:
-            // 1: +Y, 2: -Y, 3: +X, 4: -X, 5: +Z, 6: -Z
-            
-            const localUp = new THREE.Vector3(0, 1, 0);
-            localUp.applyQuaternion(q);
-            
-            // Check which world axis is closest to localUp
-            // We check dot product with (0,1,0), (0,-1,0), (1,0,0), (-1,0,0), (0,0,1), (0,0,-1)
-            
-            const axes = [
-                { dir: new THREE.Vector3(0, 1, 0), face: 1 }, // Think
-                { dir: new THREE.Vector3(0, -1, 0), face: 2 }, // Read
-                { dir: new THREE.Vector3(1, 0, 0), face: 3 }, // Write
-                { dir: new THREE.Vector3(-1, 0, 0), face: 4 }, // Talk
-                { dir: new THREE.Vector3(0, 0, 1), face: 5 }, // Draw
-                { dir: new THREE.Vector3(0, 0, -1), face: 6 }  // Model
-            ];
-
-            let maxDot = -2;
-            let resultFace = 1;
-
-            axes.forEach(axis => {
-                const dot = localUp.dot(axis.dir);
-                if (dot > maxDot) {
-                    maxDot = dot;
-                    resultFace = axis.face;
-                }
-            });
-
-            const mode = modeNames[resultFace - 1];
-            statusDiv.textContent = `Result: ${mode}`;
-            generatePrompt(mode);
-            addToLog(mode);
-        }
-
-        // --- LOGIC (Same as before) ---
-        const promptOutput = document.getElementById('prompt-output');
-        const promptText = document.getElementById('prompt-text');
-        const outputModeSpan = document.getElementById('output-mode');
-        const workflowLog = document.getElementById('workflow-log');
-        const projectNameInput = document.getElementById('project-name');
-        const projectIntentInput = document.getElementById('project-intent');
 
         function generatePrompt(mode) {
             const project = projectNameInput.value || "[Project Name Not Entered]";
@@ -442,26 +351,13 @@
         }
 
         // Event Listeners
-        container.addEventListener('click', rollDie);
-        container.addEventListener('keydown', (e) => {
+        dieContainer.addEventListener('click', rollDie);
+        dieContainer.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 rollDie();
             }
         });
-
-        // Initialize on load
-        window.onload = initPhysics;
-        
-        // Handle resize
-        window.addEventListener('resize', () => {
-            if(camera && renderer) {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            }
-        });
-
     </script>
 </body>
 </html>
