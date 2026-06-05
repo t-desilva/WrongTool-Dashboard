@@ -14,6 +14,7 @@
             --accent-hover: #002244;
             --border-color: #cccccc;
             --focus-outline: 3px solid #ffbf47;
+            --die-size: 120px; /* Increased size for better visibility */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -82,43 +83,39 @@
         .log-time { font-weight: bold; color: var(--accent-color); }
         .log-action { color: var(--text-secondary); }
 
-        /* --- THE DIE (Guaranteed Visible) --- */
+        /* --- 3D DIE STYLES (FIXED) --- */
         .die-container {
             width: 100%;
-            height: 250px;
+            height: 350px; /* Increased height to accommodate 3D perspective */
             background: #e0e0e0;
             border-radius: 8px;
             position: relative;
+            overflow: hidden;
             cursor: pointer;
             border: 2px solid var(--border-color);
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 1rem;
-            overflow: hidden;
+            /* CRITICAL: Perspective is needed for 3D to work */
+            perspective: 1000px; 
         }
 
-        /* The Die Itself */
         .die {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border: 4px solid var(--accent-color);
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: var(--die-size);
+            height: var(--die-size);
             position: relative;
-            transition: transform 0.1s;
-            z-index: 2;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.1, 0.9, 0.2, 1);
+            /* Center the die */
+            margin-top: 0;
+            margin-left: 0;
         }
 
-        /* Animation Classes */
+        /* The rolling animation class */
         .die.rolling {
+            /* We don't use keyframes here, we set the transform via JS for the final result */
+            /* But we add a slight shake effect while rolling */
             animation: shake 0.5s infinite;
         }
 
@@ -135,6 +132,34 @@
             90% { transform: translate(1px, 2px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-10deg); }
         }
+
+        .die-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border: 3px solid var(--accent-color);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+            /* CRITICAL: Backface visibility hidden so we don't see inside */
+            backface-visibility: hidden; 
+            /* Add a slight shadow to make it pop */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Positioning the 6 faces */
+        .face-1 { transform: rotateY(0deg) translateZ(60px); }
+        .face-2 { transform: rotateY(90deg) translateZ(60px); }
+        .face-3 { transform: rotateY(180deg) translateZ(60px); }
+        .face-4 { transform: rotateY(-90deg) translateZ(60px); }
+        .face-5 { transform: rotateX(90deg) translateZ(60px); }
+        .face-6 { transform: rotateX(-90deg) translateZ(60px); }
 
         #die-status {
             position: absolute;
@@ -161,7 +186,7 @@
     <div class="container">
         <header>
             <h1>Studio Hub: Critical Iteration</h1>
-            <p class="subtitle">Workflow Generator</p>
+            <p class="subtitle">3D Die Workflow Generator</p>
         </header>
 
         <main id="main-content" class="dashboard-grid">
@@ -182,7 +207,14 @@
                         <p style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Click the box to roll the die!</p>
                         
                         <div id="die-container" role="button" tabindex="0" aria-label="Roll the die">
-                            <div class="die" id="die">Roll</div>
+                            <div class="die" id="die">
+                                <div class="die-face face-1">Think</div>
+                                <div class="die-face face-2">Read</div>
+                                <div class="die-face face-3">Write</div>
+                                <div class="die-face face-4">Talk</div>
+                                <div class="die-face face-5">Draw</div>
+                                <div class="die-face face-6">Model</div>
+                            </div>
                             <div id="die-status">Click to Roll</div>
                         </div>
                     </div>
@@ -243,7 +275,6 @@
         const projectIntentInput = document.getElementById('project-intent');
 
         let isRolling = false;
-        let rollInterval;
 
         function rollDie() {
             if (isRolling) return;
@@ -251,26 +282,45 @@
             isRolling = true;
             statusDiv.textContent = "Rolling...";
             promptOutput.style.display = "none";
+            
+            // Add the shaking animation
             die.classList.add('rolling');
 
-            // Rapidly change text to simulate rolling
-            rollInterval = setInterval(() => {
-                const randomMode = modeNames[Math.floor(Math.random() * modeNames.length)];
-                die.textContent = randomMode;
-            }, 100);
+            // Determine result BEFORE animation ends
+            const resultIndex = Math.floor(Math.random() * 6) + 1;
+            const mode = modeNames[resultIndex - 1];
 
-            // Stop rolling after 1.5 seconds
+            // Map result to specific rotation that shows the correct face
+            // Face 1 (Think): 0,0
+            // Face 2 (Read): 0, -90
+            // Face 3 (Write): 0, -180
+            // Face 4 (Talk): 0, 90
+            // Face 5 (Draw): -90, 0
+            // Face 6 (Model): 90, 0
+            
+            const rotations = {
+                1: { x: 0, y: 0 },
+                2: { x: 0, y: -90 },
+                3: { x: 0, y: -180 },
+                4: { x: 0, y: 90 },
+                5: { x: -90, y: 0 },
+                6: { x: 90, y: 0 }
+            };
+
+            const rot = rotations[resultIndex];
+            // Add extra spins (3 full rotations = 1080deg) to make it look like a real roll
+            const finalX = rot.x + 1080; 
+            const finalY = rot.y + 1080;
+
+            // Apply the transform after a tiny delay to ensure the 'rolling' class starts first
             setTimeout(() => {
-                clearInterval(rollInterval);
+                die.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+            }, 50);
+
+            // Wait for animation to finish (1.5s)
+            setTimeout(() => {
                 die.classList.remove('rolling');
-                
-                // Determine final result
-                const resultIndex = Math.floor(Math.random() * 6);
-                const mode = modeNames[resultIndex];
-                
-                die.textContent = mode;
                 statusDiv.textContent = `Result: ${mode}`;
-                
                 generatePrompt(mode);
                 addToLog(mode);
                 isRolling = false;
