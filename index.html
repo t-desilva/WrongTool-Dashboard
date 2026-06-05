@@ -14,7 +14,7 @@
             --accent-hover: #002244;
             --border-color: #cccccc;
             --focus-outline: 3px solid #ffbf47;
-            --die-size: 120px; /* Increased size for better visibility */
+            --die-size: 120px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -86,7 +86,7 @@
         /* --- 3D DIE STYLES (FIXED) --- */
         .die-container {
             width: 100%;
-            height: 350px; /* Increased height to accommodate 3D perspective */
+            height: 350px;
             background: #e0e0e0;
             border-radius: 8px;
             position: relative;
@@ -97,8 +97,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 1rem;
-            /* CRITICAL: Perspective is needed for 3D to work */
-            perspective: 1000px; 
+            perspective: 1000px;
         }
 
         .die {
@@ -106,31 +105,8 @@
             height: var(--die-size);
             position: relative;
             transform-style: preserve-3d;
+            /* No transition here during rolling, we set it via JS */
             transition: transform 1.5s cubic-bezier(0.1, 0.9, 0.2, 1);
-            /* Center the die */
-            margin-top: 0;
-            margin-left: 0;
-        }
-
-        /* The rolling animation class */
-        .die.rolling {
-            /* We don't use keyframes here, we set the transform via JS for the final result */
-            /* But we add a slight shake effect while rolling */
-            animation: shake 0.5s infinite;
-        }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-10deg); }
-            20% { transform: translate(-3px, 0px) rotate(10deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(10deg); }
-            50% { transform: translate(-1px, 2px) rotate(-10deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-10deg); }
-            80% { transform: translate(-1px, -1px) rotate(10deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-10deg); }
         }
 
         .die-face {
@@ -147,9 +123,7 @@
             font-weight: bold;
             color: var(--accent-color);
             box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
-            /* CRITICAL: Backface visibility hidden so we don't see inside */
-            backface-visibility: hidden; 
-            /* Add a slight shadow to make it pop */
+            backface-visibility: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
@@ -275,6 +249,7 @@
         const projectIntentInput = document.getElementById('project-intent');
 
         let isRolling = false;
+        let rollInterval;
 
         function rollDie() {
             if (isRolling) return;
@@ -283,47 +258,57 @@
             statusDiv.textContent = "Rolling...";
             promptOutput.style.display = "none";
             
-            // Add the shaking animation
-            die.classList.add('rolling');
-
-            // Determine result BEFORE animation ends
-            const resultIndex = Math.floor(Math.random() * 6) + 1;
-            const mode = modeNames[resultIndex - 1];
-
-            // Map result to specific rotation that shows the correct face
-            // Face 1 (Think): 0,0
-            // Face 2 (Read): 0, -90
-            // Face 3 (Write): 0, -180
-            // Face 4 (Talk): 0, 90
-            // Face 5 (Draw): -90, 0
-            // Face 6 (Model): 90, 0
+            // Remove any existing transition to allow instant spinning
+            die.style.transition = 'none';
             
-            const rotations = {
-                1: { x: 0, y: 0 },
-                2: { x: 0, y: -90 },
-                3: { x: 0, y: -180 },
-                4: { x: 0, y: 90 },
-                5: { x: -90, y: 0 },
-                6: { x: 90, y: 0 }
-            };
-
-            const rot = rotations[resultIndex];
-            // Add extra spins (3 full rotations = 1080deg) to make it look like a real roll
-            const finalX = rot.x + 1080; 
-            const finalY = rot.y + 1080;
-
-            // Apply the transform after a tiny delay to ensure the 'rolling' class starts first
-            setTimeout(() => {
-                die.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+            // Start the rapid rotation loop
+            let rotationX = 0;
+            let rotationY = 0;
+            
+            rollInterval = setInterval(() => {
+                // Randomly rotate X and Y to simulate tumbling
+                rotationX += (Math.random() * 100 - 50);
+                rotationY += (Math.random() * 100 - 50);
+                die.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
             }, 50);
 
-            // Wait for animation to finish (1.5s)
+            // Stop rolling after 1.5 seconds and land on result
             setTimeout(() => {
-                die.classList.remove('rolling');
-                statusDiv.textContent = `Result: ${mode}`;
-                generatePrompt(mode);
-                addToLog(mode);
-                isRolling = false;
+                clearInterval(rollInterval);
+                
+                // Determine result
+                const resultIndex = Math.floor(Math.random() * 6) + 1;
+                const mode = modeNames[resultIndex - 1];
+
+                // Map result to specific rotation
+                const rotations = {
+                    1: { x: 0, y: 0 },
+                    2: { x: 0, y: -90 },
+                    3: { x: 0, y: -180 },
+                    4: { x: 0, y: 90 },
+                    5: { x: -90, y: 0 },
+                    6: { x: 90, y: 0 }
+                };
+
+                const rot = rotations[resultIndex];
+                
+                // Add extra spins (3 full rotations = 1080deg) to the current rotation
+                // This ensures it lands smoothly from wherever it was spinning
+                const finalX = rot.x + 1080; 
+                const finalY = rot.y + 1080;
+
+                // Add transition back for the smooth landing
+                die.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.9, 0.2, 1)';
+                die.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+
+                // Wait for landing animation to finish
+                setTimeout(() => {
+                    statusDiv.textContent = `Result: ${mode}`;
+                    generatePrompt(mode);
+                    addToLog(mode);
+                    isRolling = false;
+                }, 1500);
+
             }, 1500);
         }
 
