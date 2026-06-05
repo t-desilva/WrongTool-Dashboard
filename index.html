@@ -186,7 +186,7 @@
             height: 300px; 
             background: var(--bg-color);
             border-radius: 8px;
-            position: relative;
+            position: relative; /* CRITICAL: Allows absolute positioning inside */
             overflow: hidden;
             cursor: pointer;
             border: 2px solid var(--border-color);
@@ -206,6 +206,7 @@
             height: var(--die-size);
             position: relative;
             transform-style: preserve-3d;
+            z-index: 5; /* Ensure die is above background but below status if needed */
         }
 
         .die-face {
@@ -234,6 +235,7 @@
         .face-5 { transform: rotateX(90deg) translateZ(60px); }
         .face-6 { transform: rotateX(-90deg) translateZ(60px); }
 
+        /* UPDATED: Status is now absolutely positioned relative to the container */
         #die-status {
             position: absolute;
             bottom: 15px;
@@ -248,17 +250,18 @@
             z-index: 10;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
         }
 
         footer { margin-top: 4rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border-color); padding-top: 2rem; }
         
-        /* Hidden container for PDF generation (to ensure clean layout) */
+        /* Hidden container for PDF generation */
         #pdf-container {
             background: white;
             color: black;
             padding: 20px;
             font-family: Arial, sans-serif;
-            display: none; /* Hidden from user */
+            display: none; 
             width: 100%;
             max-width: 800px;
         }
@@ -316,6 +319,7 @@
                                 <div class="die-face face-5">Draw</div>
                                 <div class="die-face face-6">Model</div>
                             </div>
+                            <!-- Status is now inside the container -->
                             <div id="die-status">Click to Roll</div>
                         </div>
                     </div>
@@ -516,7 +520,7 @@
             statusDiv.textContent = "Click to Roll";
         }
 
-        // --- NEW: EXPORT PDF LOGIC ---
+        // --- EXPORT PDF LOGIC ---
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -560,17 +564,16 @@
             // 3. Use html2canvas to capture the container
             html2canvas(pdfContainer, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 190; // A4 width in mm minus margins
+                const imgWidth = 190; 
                 const pageHeight = 295; 
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
                 let heightLeft = imgHeight;
-                let position = 10; // Top margin
+                let position = 10; 
 
                 doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
                 heightLeft -= pageHeight;
 
-                // Handle multi-page PDF if log is long
                 while (heightLeft >= 0) {
                     position = heightLeft - imgHeight;
                     doc.addPage();
@@ -580,7 +583,6 @@
 
                 doc.save(`Studio-Log-${projectName.replace(/\s+/g, '_')}.pdf`);
                 
-                // Hide container again
                 pdfContainer.style.display = 'none';
             });
         }
