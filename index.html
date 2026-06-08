@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Hub: Critical Iteration</title>
+    <title>The Wrong Tool for the Right Job</title>
     <!-- Libraries for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -300,8 +300,8 @@
     <div class="container">
         <header>
             <div>
-                <h1>Studio Hub: Critical Iteration</h1>
-                <p class="subtitle">3D Die Workflow Generator</p>
+                <h1>Get Un-Stuck!</h1>
+                <p class="subtitle">Methodological Workflow Generator</p>
             </div>
             <div class="toggle-container">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -325,7 +325,7 @@
             <section aria-labelledby="context-heading">
                 <div class="card">
                     <h2 id="context-heading">1. Project Context</h2>
-                    <p>Select a methodological lens to guide your analysis. The full definition will be included in the AI prompt.</p>
+                    <p>Select a methodological lens to guide your analysis of your chosen case study project. The full definition will be included in the AI prompt.</p>
                     
                     <label for="project-name">Project / Building Name</label>
                     <input type="text" id="project-name" placeholder="e.g., The Ex of In House by Steven Holl">
@@ -362,7 +362,7 @@
             <section aria-labelledby="ai-heading">
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <h2 id="ai-heading">2. AI Workflow Generator</h2>
+                        <h2 id="ai-heading">2. AI-Assisted Workflow Generator</h2>
                         <div>
                             <button class="btn btn-secondary" onclick="exportPDF()">Export PDF</button>
                             <button class="btn btn-danger" onclick="clearSession()">Clear</button>
@@ -403,8 +403,8 @@
         </main>
 
         <footer>
-            <p>&copy; 2023 University of Idaho - Interior Architecture Studio.</p>
-            <p>Methodology based on "The Wrong Tool for the Right Job" abstract.</p>
+            <p>&copy; Developed by Tharique De Silva at The University of Idaho - Interior Architecture & Design Program.</p>
+            <p>Methodology based on "The Wrong Tool for the Right Job" abstract submitted to NCBDS41.</p>
         </footer>
     </div>
 
@@ -418,7 +418,7 @@
             "Write": "Act as an architectural critic. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nDraft a 200-word critical paragraph describing the project's spatial experience. Use evocative language that highlights the relationship between the built form and the user's perception, specifically focusing on the {LENS_FULL} aspect.",
             "Talk": "Act as a Socratic Question Generator for an architecture studio critique. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nGenerate a list of 7 specific, high-level questions that I can ask a peer or the architect to uncover deeper information about the project from this specific perspective.\n\nFocus the questions on:\n1. The relationship between {LENS_FULL} and form.\n2. The materiality and its emotional impact regarding {LENS_FULL}.\n3. The circulation and how it shapes the user experience regarding {LENS_FULL}.\n4. The 'parti' and how it resolves conflicting constraints regarding {LENS_FULL}.\n\nDo not answer the questions. Just list them as interview prompts.",
             "Draw": "Act as a senior architectural illustrator. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nPropose 3 distinct diagrammatic strategies to visualize the project's core concept specifically related to {LENS_FULL}. Describe the specific type of diagram (e.g., bubble, flow, sectional perspective) and what specific element of the {LENS_FULL} each diagram should reveal. Do not generate images, just describe the visual strategy.",
-            "Model": "Act as a material and construction expert. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nSuggest a physical study model strategy to explore the relationship between structure and void, specifically focusing on {LENS_FULL}. Recommend specific materials (e.g., balsa, foam, wire) and construction techniques that would best communicate the {LENS_FULL} aspect. Describe the scale and the specific detail to focus on."
+            "Model": "Act as a material and construction expert. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nSuggest an analytical, abstract physical study model strategy to explore the relationship between structure and void, specifically focusing on {LENS_FULL}. Recommend specific materials (e.g., balsa, foam, wire) and construction techniques that would best communicate the {LENS_FULL} aspect. Describe the scale and the specific detail to focus on."
         };
 
         const modeNames = ["Think", "Read", "Write", "Talk", "Draw", "Model"];
