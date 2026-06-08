@@ -35,7 +35,7 @@
             --die-bg: #2c2c2c;
             --die-border: #FF007F;
             --die-text: #FF007F;
-            --icon-color: #FF007F; /* Icon turns pink in dark mode */
+            --icon-color: #FF007F;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,7 +58,6 @@
         h1 { font-size: 2.5rem; color: var(--accent-color); }
         .subtitle { font-size: 1.2rem; color: var(--text-secondary); }
 
-        /* Toggle Container with Icons */
         .toggle-container {
             display: flex;
             align-items: center;
@@ -200,7 +199,8 @@
         .log-action { color: var(--text-secondary); display: block; margin-bottom: 5px; }
         .log-reflection { font-style: italic; color: var(--text-main); display: block; margin-bottom: 5px; border-left: 2px solid var(--accent-color); padding-left: 5px; }
         .log-evidence { display: block; margin-top: 5px; }
-        .log-evidence img { max-width: 150px; border-radius: 4px; border: 1px solid var(--border-color); }
+        .log-evidence img { max-width: 100%; border-radius: 4px; border: 1px solid var(--border-color); }
+        .log-annotation { font-size: 0.9rem; color: var(--text-secondary); margin-top: 5px; font-style: italic; border-left: 2px solid var(--text-secondary); padding-left: 5px; }
 
         .die-container {
             width: 100%;
@@ -290,6 +290,7 @@
         #pdf-container .entry-time { font-weight: bold; color: #FF8C00; }
         #pdf-container .entry-reflection { font-style: italic; margin: 5px 0; color: #333; }
         #pdf-container .entry-image { max-width: 100%; margin-top: 10px; border: 1px solid #ddd; }
+        #pdf-container .entry-annotation { font-size: 0.9rem; color: #555; margin-top: 8px; font-style: italic; border-left: 2px solid #ccc; padding-left: 8px; }
     </style>
 </head>
 <body>
@@ -303,7 +304,6 @@
                 <p class="subtitle">3D Die Workflow Generator</p>
             </div>
             <div class="toggle-container">
-                <!-- Sun Icon -->
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="12" cy="12" r="5" />
                     <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -314,7 +314,6 @@
                     <span class="slider"></span>
                 </label>
                 
-                <!-- Moon Icon -->
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
@@ -381,10 +380,13 @@
                         <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
                         
                         <label for="reflection">My Reflection / Next Step:</label>
-                        <textarea id="reflection" style="height: 80px; margin-bottom: 0.5rem;" placeholder="How will you use this? What is your next move?"></textarea>
+                        <textarea id="reflection" style="height: 80px; margin-bottom: 0.5rem; width: 100%;" placeholder="How will you use this? What is your next move?"></textarea>
                         
                         <label for="evidence-upload">Upload Evidence (Sketch, Photo, Screenshot):</label>
                         <input type="file" id="evidence-upload" accept="image/*">
+                        
+                        <label for="evidence-annotation" style="margin-top: 10px;">Evidence Annotation / Notes:</label>
+                        <textarea id="evidence-annotation" style="height: 60px; margin-bottom: 10px; width: 100%;" placeholder="Add notes about the image or text if no image is uploaded..."></textarea>
                         
                         <button class="btn" style="width:100%; margin-top: 10px;" onclick="saveEntry()">Save to Log</button>
                     </div>
@@ -434,6 +436,7 @@
         const themeToggle = document.getElementById('theme-toggle');
         const reflectionInput = document.getElementById('reflection');
         const evidenceInput = document.getElementById('evidence-upload');
+        const annotationInput = document.getElementById('evidence-annotation');
         const pdfContainer = document.getElementById('pdf-container');
 
         let isRolling = false;
@@ -518,9 +521,11 @@
         function generatePrompt(mode) {
             let project = projectNameInput.value || "[Project Name Not Entered]";
             
-            // Extract the FULL definition from the dropdown option
+            // Get the FULL text of the selected option (e.g., "Phenomenological: Focus on...")
             const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
-            const lensFull = selectedOptionText.split(":")[1].trim();
+            
+            // Use the full string directly
+            const lensFull = selectedOptionText.trim();
 
             let finalPrompt = modes[mode].replace(/{PROJECT}/g, project).replace(/{LENS_FULL}/g, lensFull);
 
@@ -530,6 +535,7 @@
             
             reflectionInput.value = "";
             evidenceInput.value = "";
+            annotationInput.value = "";
         }
 
         // --- SAVE ENTRY LOGIC ---
@@ -538,6 +544,7 @@
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const reflection = reflectionInput.value.trim();
             const file = evidenceInput.files[0];
+            const annotation = annotationInput.value.trim();
             const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
             const lensName = selectedOptionText.split(":")[0].trim();
             
@@ -561,6 +568,13 @@
                     li.appendChild(imgDiv);
                 };
                 reader.readAsDataURL(file);
+            }
+
+            if (annotation) {
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'log-annotation';
+                noteDiv.textContent = annotation;
+                li.appendChild(noteDiv);
             }
 
             li.innerHTML = htmlContent;
@@ -598,16 +612,25 @@
                     const action = item.querySelector('.log-action')?.innerText || "";
                     const reflection = item.querySelector('.log-reflection')?.innerText || "";
                     const img = item.querySelector('img');
+                    const annotation = item.querySelector('.log-annotation')?.textContent || "";
+                    
                     let imgHtml = "";
                     if (img) {
                         imgHtml = `<div class="entry-image"><img src="${img.src}" style="max-width:100%; height:auto;"></div>`;
                     }
+                    
+                    let annotationHtml = "";
+                    if (annotation) {
+                        annotationHtml = `<div class="entry-annotation">${annotation}</div>`;
+                    }
+
                     return `
                     <div class="entry">
                         <div class="entry-time">${time}</div>
                         <div>${action}</div>
                         ${reflection ? `<div class="entry-reflection">Reflection: ${reflection}</div>` : ''}
                         ${imgHtml}
+                        ${annotationHtml}
                     </div>
                     `;
                 }).join('')}
@@ -649,6 +672,9 @@
                 promptOutput.style.display = "none";
                 statusDiv.textContent = "Click to Roll";
                 lastTwoRolls = [];
+                reflectionInput.value = "";
+                evidenceInput.value = "";
+                annotationInput.value = "";
             }
         }
 
