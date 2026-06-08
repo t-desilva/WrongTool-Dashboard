@@ -186,7 +186,7 @@
             height: 300px; 
             background: var(--bg-color);
             border-radius: 8px;
-            position: relative; /* CRITICAL: Allows absolute positioning inside */
+            position: relative; 
             overflow: hidden;
             cursor: pointer;
             border: 2px solid var(--border-color);
@@ -206,7 +206,7 @@
             height: var(--die-size);
             position: relative;
             transform-style: preserve-3d;
-            z-index: 5; /* Ensure die is above background but below status if needed */
+            z-index: 5;
         }
 
         .die-face {
@@ -235,7 +235,6 @@
         .face-5 { transform: rotateX(90deg) translateZ(60px); }
         .face-6 { transform: rotateX(-90deg) translateZ(60px); }
 
-        /* UPDATED: Status is now absolutely positioned relative to the container */
         #die-status {
             position: absolute;
             bottom: 15px;
@@ -255,7 +254,6 @@
 
         footer { margin-top: 4rem; text-align: center; font-size: 0.9rem; color: var(--text-secondary); border-top: 1px solid var(--border-color); padding-top: 2rem; }
         
-        /* Hidden container for PDF generation */
         #pdf-container {
             background: white;
             color: black;
@@ -295,7 +293,6 @@
 
         <main id="main-content" class="dashboard-grid">
             
-            <!-- LEFT COLUMN: Context & Die -->
             <section aria-labelledby="context-heading">
                 <div class="card">
                     <h2 id="context-heading">1. Project Context</h2>
@@ -319,14 +316,12 @@
                                 <div class="die-face face-5">Draw</div>
                                 <div class="die-face face-6">Model</div>
                             </div>
-                            <!-- Status is now inside the container -->
                             <div id="die-status">Click to Roll</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- RIGHT COLUMN: AI Prompt & Log -->
             <section aria-labelledby="ai-heading">
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
@@ -373,11 +368,10 @@
         </footer>
     </div>
 
-    <!-- Hidden PDF Container -->
     <div id="pdf-container"></div>
 
     <script>
-        // --- DATA: The 6 Modes and their AI Prompts ---
+        // --- DATA ---
         const modes = {
             "Think": "Act as a critical design theorist. I am analyzing the project '{PROJECT}' with the core intent: '{INTENT}'.\n\nHelp me deconstruct the philosophical underpinnings of this work. Ask me 3 probing questions that challenge my current understanding of the designer's intent. Focus on the 'why' behind the design decisions rather than the 'how'.",
             "Read": "Act as a research assistant specializing in architectural history. I am studying '{PROJECT}'.\n\nBased on the intent '{INTENT}', suggest 3 specific types of primary sources or theoretical texts I should look for to deepen my analysis. Explain how these sources would help me understand the 'parti' or core concept better.",
@@ -406,6 +400,9 @@
 
         let isRolling = false;
         let currentMode = null;
+        
+        // NEW: Array to store the last 2 rolls to prevent repeats
+        let lastTwoRolls = [];
 
         // --- DARK MODE LOGIC ---
         themeToggle.addEventListener('change', () => {
@@ -417,7 +414,7 @@
             }
         });
 
-        // --- ROLL LOGIC (SMOOTHED) ---
+        // --- ROLL LOGIC (WITH NO REPEATS) ---
         function rollDie() {
             if (isRolling) return;
             
@@ -427,8 +424,16 @@
             
             die.style.transition = 'none';
             
-            const resultIndex = Math.floor(Math.random() * 6) + 1;
-            currentMode = modeNames[resultIndex - 1];
+            // NEW: Determine a result that is NOT in the last two rolls
+            let resultIndex;
+            let candidateMode;
+            
+            do {
+                resultIndex = Math.floor(Math.random() * 6) + 1;
+                candidateMode = modeNames[resultIndex - 1];
+            } while (lastTwoRolls.includes(candidateMode));
+
+            currentMode = candidateMode;
 
             const rotations = {
                 1: { x: 0, y: 0 },
@@ -484,7 +489,7 @@
             evidenceInput.value = "";
         }
 
-        // --- SAVE ENTRY LOGIC ---
+        // --- SAVE ENTRY LOGIC (UPDATES HISTORY) ---
         function saveEntry() {
             const now = new Date();
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -516,6 +521,12 @@
             li.innerHTML = htmlContent;
             workflowLog.insertBefore(li, workflowLog.firstChild);
             
+            // NEW: Update the history of last two rolls
+            lastTwoRolls.push(currentMode);
+            if (lastTwoRolls.length > 2) {
+                lastTwoRolls.shift(); // Remove the oldest roll
+            }
+            
             promptOutput.style.display = "none";
             statusDiv.textContent = "Click to Roll";
         }
@@ -529,7 +540,6 @@
             const projectIntent = projectIntentInput.value || "No intent provided";
             const date = new Date().toLocaleDateString();
 
-            // 1. Build the PDF Content in the hidden container
             pdfContainer.innerHTML = `
                 <h2>Studio Iteration Log</h2>
                 <div class="meta">
@@ -558,10 +568,8 @@
                 }).join('')}
             `;
 
-            // 2. Show container temporarily to capture
             pdfContainer.style.display = 'block';
 
-            // 3. Use html2canvas to capture the container
             html2canvas(pdfContainer, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const imgWidth = 190; 
@@ -595,6 +603,7 @@
                 projectIntentInput.value = "";
                 promptOutput.style.display = "none";
                 statusDiv.textContent = "Click to Roll";
+                lastTwoRolls = []; // Reset history
             }
         }
 
