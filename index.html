@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            /* Light Mode Variables (Bright Orange) */
             --bg-color: #f4f4f9;
             --card-bg: #ffffff;
             --text-main: #1a1a1a;
@@ -24,7 +23,6 @@
             --die-size: 120px;
         }
 
-        /* Dark Mode Variables (Hot Pink) */
         [data-theme="dark"] {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -42,9 +40,8 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; transition: background-color 0.3s, color 0.3s; }
         
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-        a:focus, button:focus, input:focus, textarea:focus { outline: var(--focus-outline); outline-offset: 2px; }
+        a:focus, button:focus, input:focus, textarea:focus, select:focus { outline: var(--focus-outline); outline-offset: 2px; }
 
-        /* Header & Layout */
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         header { 
             display: flex; 
@@ -59,7 +56,6 @@
         h1 { font-size: 2.5rem; color: var(--accent-color); }
         .subtitle { font-size: 1.2rem; color: var(--text-secondary); }
 
-        /* Toggle Switch Styles */
         .toggle-container {
             display: flex;
             align-items: center;
@@ -118,7 +114,7 @@
         .card p { margin-bottom: 1rem; color: var(--text-secondary); }
 
         label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: var(--text-main); }
-        input[type="text"], textarea {
+        input[type="text"] {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--border-color);
@@ -128,7 +124,27 @@
             background-color: var(--bg-color);
             color: var(--text-main);
         }
-        textarea { height: 120px; resize: vertical; }
+        
+        /* Dropdown Styling */
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: inherit;
+            margin-bottom: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            cursor: pointer;
+            appearance: none; /* Remove default arrow */
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FF8C00%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 0.65em auto;
+        }
+        [data-theme="dark"] select {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FF007F%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        }
 
         .btn {
             display: inline-block;
@@ -149,6 +165,7 @@
         .btn-secondary:hover { background-color: var(--accent-color); color: white; }
         .btn-danger { background-color: #d9534f; color: white; border: none; }
         .btn-danger:hover { background-color: #c9302c; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
 
         #prompt-output {
             background-color: rgba(0,0,0,0.05);
@@ -180,7 +197,6 @@
         .log-evidence { display: block; margin-top: 5px; }
         .log-evidence img { max-width: 150px; border-radius: 4px; border: 1px solid var(--border-color); }
 
-        /* --- 3D DIE STYLES (CENTERED & SMOOTH) --- */
         .die-container {
             width: 100%;
             height: 300px; 
@@ -296,13 +312,24 @@
             <section aria-labelledby="context-heading">
                 <div class="card">
                     <h2 id="context-heading">1. Project Context</h2>
-                    <p>Enter the case study. This will be injected into your AI prompts.</p>
+                    <p>Select a methodological lens to guide your analysis. This will define the AI's focus.</p>
                     
                     <label for="project-name">Project / Building Name</label>
                     <input type="text" id="project-name" placeholder="e.g., The Ex of In House by Steven Holl">
                     
-                    <label for="project-intent">Core Intent / Concept</label>
-                    <textarea id="project-intent" placeholder="e.g., Exploring light, shadow, and negative voids..."></textarea>
+                    <label for="methodology-select">Select Methodological Lens</label>
+                    <select id="methodology-select">
+                        <option value="" disabled selected>Choose a lens...</option>
+                        <option value="Phenomenological">Phenomenological: Focus on light, shadow, materiality, and sensory experience.</option>
+                        <option value="Programmatic">Programmatic: Focus on circulation, function, user flow, and spatial relationships.</option>
+                        <option value="Structural">Structural: Focus on load paths, tectonics, construction methods, and structural expression.</option>
+                        <option value="Contextual">Contextual: Focus on site conditions, urban fabric, history, and relationship to surroundings.</option>
+                        <option value="Conceptual">Conceptual: Focus on the abstract 'parti', theoretical underpinnings, and symbolic meaning.</option>
+                        <option value="Critical">Critical: Focus on contradictions, failures, social impact, and political implications.</option>
+                    </select>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -0.5rem; margin-bottom: 1rem;">
+                        *This lens will be combined with your die roll to generate a specific prompt.
+                    </p>
 
                     <div style="margin-top: 1rem;">
                         <p style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Click the box to roll the die!</p>
@@ -371,14 +398,14 @@
     <div id="pdf-container"></div>
 
     <script>
-        // --- DATA ---
+        // --- DATA: Updated Modes to use the Lens ---
         const modes = {
-            "Think": "Act as a critical design theorist. I am analyzing the project '{PROJECT}' with the core intent: '{INTENT}'.\n\nHelp me deconstruct the philosophical underpinnings of this work. Ask me 3 probing questions that challenge my current understanding of the designer's intent. Focus on the 'why' behind the design decisions rather than the 'how'.",
-            "Read": "Act as a research assistant specializing in architectural history. I am studying '{PROJECT}'.\n\nBased on the intent '{INTENT}', suggest 3 specific types of primary sources or theoretical texts I should look for to deepen my analysis. Explain how these sources would help me understand the 'parti' or core concept better.",
-            "Write": "Act as an architectural critic. I am analyzing '{PROJECT}' (Intent: '{INTENT}').\n\nDraft a 200-word critical paragraph describing the project's spatial experience. Use evocative language that highlights the relationship between the built form and the user's perception. Avoid generic descriptions; focus on specific atmospheric qualities.",
-            "Talk": "Act as a debate partner. I am discussing '{PROJECT}' with you. My current hypothesis is that the design intent '{INTENT}' is successful.\n\nChallenge this hypothesis. Argue the opposite side. Point out potential flaws in the circulation, program, or materiality that might contradict the stated intent. Be rigorous and critical.",
-            "Draw": "Act as a senior architectural illustrator. I am analyzing '{PROJECT}' (Intent: '{INTENT}').\n\nPropose 3 distinct diagrammatic strategies to visualize the project's core concept. Describe the specific type of diagram (e.g., bubble, flow, sectional perspective) and what specific element of the 'intent' each diagram should reveal. Do not generate images, just describe the visual strategy.",
-            "Model": "Act as a material and construction expert. I am analyzing '{PROJECT}' (Intent: '{INTENT}').\n\nSuggest a physical study model strategy to explore the relationship between structure and void. Recommend specific materials (e.g., balsa, foam, wire) and construction techniques that would best communicate the 'intent' of '{INTENT}'. Describe the scale and the specific detail to focus on."
+            "Think": "Act as a critical design theorist. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nHelp me deconstruct the philosophical underpinnings of this work. Ask me 3 probing questions that challenge my current understanding of the designer's intent from this specific perspective. Focus on the 'why' behind the design decisions.",
+            "Read": "Act as a research assistant specializing in architectural history. I am studying '{PROJECT}' through the lens of: {LENS}.\n\nBased on this specific lens, suggest 3 specific types of primary sources, theoretical texts, or case studies I should look for to deepen my analysis. Explain how these sources would help me understand the project better.",
+            "Write": "Act as an architectural critic. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nDraft a 200-word critical paragraph describing the project's spatial experience. Use evocative language that highlights the relationship between the built form and the user's perception, specifically focusing on the {LENS} aspect.",
+            "Talk": "Act as a Socratic Question Generator for an architecture studio critique. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nGenerate a list of 7 specific, high-level questions that I can ask a peer or the architect to uncover deeper information about the project from this specific perspective.\n\nFocus the questions on:\n1. The relationship between {LENS} and form.\n2. The materiality and its emotional impact regarding {LENS}.\n3. The circulation and how it shapes the user experience regarding {LENS}.\n4. The 'parti' and how it resolves conflicting constraints regarding {LENS}.\n\nDo not answer the questions. Just list them as interview prompts.",
+            "Draw": "Act as a senior architectural illustrator. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nPropose 3 distinct diagrammatic strategies to visualize the project's core concept specifically related to {LENS}. Describe the specific type of diagram (e.g., bubble, flow, sectional perspective) and what specific element of the {LENS} each diagram should reveal. Do not generate images, just describe the visual strategy.",
+            "Model": "Act as a material and construction expert. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nSuggest a physical study model strategy to explore the relationship between structure and void, specifically focusing on {LENS}. Recommend specific materials (e.g., balsa, foam, wire) and construction techniques that would best communicate the {LENS} aspect. Describe the scale and the specific detail to focus on."
         };
 
         const modeNames = ["Think", "Read", "Write", "Talk", "Draw", "Model"];
@@ -392,7 +419,7 @@
         const outputModeSpan = document.getElementById('output-mode');
         const workflowLog = document.getElementById('workflow-log');
         const projectNameInput = document.getElementById('project-name');
-        const projectIntentInput = document.getElementById('project-intent');
+        const methodologySelect = document.getElementById('methodology-select');
         const themeToggle = document.getElementById('theme-toggle');
         const reflectionInput = document.getElementById('reflection');
         const evidenceInput = document.getElementById('evidence-upload');
@@ -400,8 +427,6 @@
 
         let isRolling = false;
         let currentMode = null;
-        
-        // NEW: Array to store the last 2 rolls to prevent repeats
         let lastTwoRolls = [];
 
         // --- DARK MODE LOGIC ---
@@ -418,13 +443,18 @@
         function rollDie() {
             if (isRolling) return;
             
+            // Validate selection
+            if (!methodologySelect.value) {
+                alert("Please select a Methodological Lens first!");
+                return;
+            }
+
             isRolling = true;
             statusDiv.textContent = "Rolling...";
             promptOutput.style.display = "none";
             
             die.style.transition = 'none';
             
-            // NEW: Determine a result that is NOT in the last two rolls
             let resultIndex;
             let candidateMode;
             
@@ -476,10 +506,10 @@
         }
 
         function generatePrompt(mode) {
-            const project = projectNameInput.value || "[Project Name Not Entered]";
-            const intent = projectIntentInput.value || "[Intent Not Entered]";
-            
-            let finalPrompt = modes[mode].replace(/{PROJECT}/g, project).replace(/{INTENT}/g, intent);
+            let project = projectNameInput.value || "[Project Name Not Entered]";
+            let lens = methodologySelect.options[methodologySelect.selectedIndex].text.split(":")[0].trim(); // Extract just the lens name
+
+            let finalPrompt = modes[mode].replace(/{PROJECT}/g, project).replace(/{LENS}/g, lens);
 
             outputModeSpan.textContent = mode;
             promptText.textContent = finalPrompt;
@@ -489,17 +519,18 @@
             evidenceInput.value = "";
         }
 
-        // --- SAVE ENTRY LOGIC (UPDATES HISTORY) ---
+        // --- SAVE ENTRY LOGIC ---
         function saveEntry() {
             const now = new Date();
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const reflection = reflectionInput.value.trim();
             const file = evidenceInput.files[0];
+            const lens = methodologySelect.options[methodologySelect.selectedIndex].text.split(":")[0].trim();
             
             const li = document.createElement('li');
             li.className = 'log-item';
             
-            let htmlContent = `<span class="log-time">[${timeString}]</span> Rolled <strong>${currentMode}</strong>.`;
+            let htmlContent = `<span class="log-time">[${timeString}]</span> Rolled <strong>${currentMode}</strong> via <strong>${lens}</strong> lens.`;
             
             if (reflection) {
                 htmlContent += `<span class="log-reflection">"${reflection}"</span>`;
@@ -521,10 +552,9 @@
             li.innerHTML = htmlContent;
             workflowLog.insertBefore(li, workflowLog.firstChild);
             
-            // NEW: Update the history of last two rolls
             lastTwoRolls.push(currentMode);
             if (lastTwoRolls.length > 2) {
-                lastTwoRolls.shift(); // Remove the oldest roll
+                lastTwoRolls.shift();
             }
             
             promptOutput.style.display = "none";
@@ -537,14 +567,14 @@
             const doc = new jsPDF();
             
             const projectName = projectNameInput.value || "Untitled Project";
-            const projectIntent = projectIntentInput.value || "No intent provided";
+            const lens = methodologySelect.options[methodologySelect.selectedIndex].text.split(":")[0].trim();
             const date = new Date().toLocaleDateString();
 
             pdfContainer.innerHTML = `
                 <h2>Studio Iteration Log</h2>
                 <div class="meta">
                     <strong>Project:</strong> ${projectName}<br>
-                    <strong>Intent:</strong> ${projectIntent}<br>
+                    <strong>Methodological Lens:</strong> ${lens}<br>
                     <strong>Date:</strong> ${date}
                 </div>
                 <hr style="border: 1px solid #ddd; margin: 15px 0;">
@@ -589,7 +619,7 @@
                     heightLeft -= pageHeight;
                 }
 
-                doc.save(`Studio-Log-${projectName.replace(/\s+/g, '_')}.pdf`);
+                doc.save(`Studio-Log-${projectName.replace(/\s+/g, '_')}-${lens.replace(/\s+/g, '_')}.pdf`);
                 
                 pdfContainer.style.display = 'none';
             });
@@ -600,10 +630,10 @@
             if(confirm("Are you sure you want to clear your session log?")) {
                 workflowLog.innerHTML = "";
                 projectNameInput.value = "";
-                projectIntentInput.value = "";
+                methodologySelect.value = "";
                 promptOutput.style.display = "none";
                 statusDiv.textContent = "Click to Roll";
-                lastTwoRolls = []; // Reset history
+                lastTwoRolls = [];
             }
         }
 
