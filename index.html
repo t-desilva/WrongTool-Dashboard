@@ -21,6 +21,7 @@
             --die-text: #FF8C00;
             --focus-outline: 3px solid #FF8C00;
             --die-size: 120px;
+            --icon-color: #4a4a4a;
         }
 
         [data-theme="dark"] {
@@ -34,6 +35,7 @@
             --die-bg: #2c2c2c;
             --die-border: #FF007F;
             --die-text: #FF007F;
+            --icon-color: #FF007F; /* Icon turns pink in dark mode */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,16 +58,20 @@
         h1 { font-size: 2.5rem; color: var(--accent-color); }
         .subtitle { font-size: 1.2rem; color: var(--text-secondary); }
 
+        /* Toggle Container with Icons */
         .toggle-container {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
-        .toggle-label {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--text-secondary);
+        
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--icon-color);
+            transition: fill 0.3s;
         }
+
         .switch {
             position: relative;
             display: inline-block;
@@ -297,12 +303,21 @@
                 <p class="subtitle">3D Die Workflow Generator</p>
             </div>
             <div class="toggle-container">
-                <span class="toggle-label">Light</span>
+                <!-- Sun Icon -->
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="5" />
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                
                 <label class="switch">
                     <input type="checkbox" id="theme-toggle">
                     <span class="slider"></span>
                 </label>
-                <span class="toggle-label">Dark</span>
+                
+                <!-- Moon Icon -->
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
             </div>
         </header>
 
@@ -504,9 +519,8 @@
             let project = projectNameInput.value || "[Project Name Not Entered]";
             
             // Extract the FULL definition from the dropdown option
-            // Format in HTML: "Name: Definition"
             const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
-            const lensFull = selectedOptionText.split(":")[1].trim(); // Get everything after the colon
+            const lensFull = selectedOptionText.split(":")[1].trim();
 
             let finalPrompt = modes[mode].replace(/{PROJECT}/g, project).replace(/{LENS_FULL}/g, lensFull);
 
