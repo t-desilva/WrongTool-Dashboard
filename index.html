@@ -125,7 +125,6 @@
             color: var(--text-main);
         }
         
-        /* Dropdown Styling */
         select {
             width: 100%;
             padding: 0.75rem;
@@ -136,7 +135,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             cursor: pointer;
-            appearance: none; /* Remove default arrow */
+            appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FF8C00%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat;
             background-position: right 1rem center;
@@ -312,7 +311,7 @@
             <section aria-labelledby="context-heading">
                 <div class="card">
                     <h2 id="context-heading">1. Project Context</h2>
-                    <p>Select a methodological lens to guide your analysis. This will define the AI's focus.</p>
+                    <p>Select a methodological lens to guide your analysis. The full definition will be included in the AI prompt.</p>
                     
                     <label for="project-name">Project / Building Name</label>
                     <input type="text" id="project-name" placeholder="e.g., The Ex of In House by Steven Holl">
@@ -327,9 +326,6 @@
                         <option value="Conceptual">Conceptual: Focus on the abstract 'parti', theoretical underpinnings, and symbolic meaning.</option>
                         <option value="Critical">Critical: Focus on contradictions, failures, social impact, and political implications.</option>
                     </select>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -0.5rem; margin-bottom: 1rem;">
-                        *This lens will be combined with your die roll to generate a specific prompt.
-                    </p>
 
                     <div style="margin-top: 1rem;">
                         <p style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Click the box to roll the die!</p>
@@ -398,14 +394,14 @@
     <div id="pdf-container"></div>
 
     <script>
-        // --- DATA: Updated Modes to use the Lens ---
+        // --- DATA: Updated Modes to use the Full Lens Definition ---
         const modes = {
-            "Think": "Act as a critical design theorist. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nHelp me deconstruct the philosophical underpinnings of this work. Ask me 3 probing questions that challenge my current understanding of the designer's intent from this specific perspective. Focus on the 'why' behind the design decisions.",
-            "Read": "Act as a research assistant specializing in architectural history. I am studying '{PROJECT}' through the lens of: {LENS}.\n\nBased on this specific lens, suggest 3 specific types of primary sources, theoretical texts, or case studies I should look for to deepen my analysis. Explain how these sources would help me understand the project better.",
-            "Write": "Act as an architectural critic. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nDraft a 200-word critical paragraph describing the project's spatial experience. Use evocative language that highlights the relationship between the built form and the user's perception, specifically focusing on the {LENS} aspect.",
-            "Talk": "Act as a Socratic Question Generator for an architecture studio critique. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nGenerate a list of 7 specific, high-level questions that I can ask a peer or the architect to uncover deeper information about the project from this specific perspective.\n\nFocus the questions on:\n1. The relationship between {LENS} and form.\n2. The materiality and its emotional impact regarding {LENS}.\n3. The circulation and how it shapes the user experience regarding {LENS}.\n4. The 'parti' and how it resolves conflicting constraints regarding {LENS}.\n\nDo not answer the questions. Just list them as interview prompts.",
-            "Draw": "Act as a senior architectural illustrator. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nPropose 3 distinct diagrammatic strategies to visualize the project's core concept specifically related to {LENS}. Describe the specific type of diagram (e.g., bubble, flow, sectional perspective) and what specific element of the {LENS} each diagram should reveal. Do not generate images, just describe the visual strategy.",
-            "Model": "Act as a material and construction expert. I am analyzing '{PROJECT}' through the lens of: {LENS}.\n\nSuggest a physical study model strategy to explore the relationship between structure and void, specifically focusing on {LENS}. Recommend specific materials (e.g., balsa, foam, wire) and construction techniques that would best communicate the {LENS} aspect. Describe the scale and the specific detail to focus on."
+            "Think": "Act as a critical design theorist. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nHelp me deconstruct the philosophical underpinnings of this work. Ask me 3 probing questions that challenge my current understanding of the designer's intent from this specific perspective. Focus on the 'why' behind the design decisions.",
+            "Read": "Act as a research assistant specializing in architectural history. I am studying '{PROJECT}' through the lens of: {LENS_FULL}\n\nBased on this specific lens, suggest 3 specific types of primary sources, theoretical texts, or case studies I should look for to deepen my analysis. Explain how these sources would help me understand the project better.",
+            "Write": "Act as an architectural critic. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nDraft a 200-word critical paragraph describing the project's spatial experience. Use evocative language that highlights the relationship between the built form and the user's perception, specifically focusing on the {LENS_FULL} aspect.",
+            "Talk": "Act as a Socratic Question Generator for an architecture studio critique. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nGenerate a list of 7 specific, high-level questions that I can ask a peer or the architect to uncover deeper information about the project from this specific perspective.\n\nFocus the questions on:\n1. The relationship between {LENS_FULL} and form.\n2. The materiality and its emotional impact regarding {LENS_FULL}.\n3. The circulation and how it shapes the user experience regarding {LENS_FULL}.\n4. The 'parti' and how it resolves conflicting constraints regarding {LENS_FULL}.\n\nDo not answer the questions. Just list them as interview prompts.",
+            "Draw": "Act as a senior architectural illustrator. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nPropose 3 distinct diagrammatic strategies to visualize the project's core concept specifically related to {LENS_FULL}. Describe the specific type of diagram (e.g., bubble, flow, sectional perspective) and what specific element of the {LENS_FULL} each diagram should reveal. Do not generate images, just describe the visual strategy.",
+            "Model": "Act as a material and construction expert. I am analyzing '{PROJECT}' through the lens of: {LENS_FULL}\n\nSuggest a physical study model strategy to explore the relationship between structure and void, specifically focusing on {LENS_FULL}. Recommend specific materials (e.g., balsa, foam, wire) and construction techniques that would best communicate the {LENS_FULL} aspect. Describe the scale and the specific detail to focus on."
         };
 
         const modeNames = ["Think", "Read", "Write", "Talk", "Draw", "Model"];
@@ -443,7 +439,6 @@
         function rollDie() {
             if (isRolling) return;
             
-            // Validate selection
             if (!methodologySelect.value) {
                 alert("Please select a Methodological Lens first!");
                 return;
@@ -507,9 +502,13 @@
 
         function generatePrompt(mode) {
             let project = projectNameInput.value || "[Project Name Not Entered]";
-            let lens = methodologySelect.options[methodologySelect.selectedIndex].text.split(":")[0].trim(); // Extract just the lens name
+            
+            // Extract the FULL definition from the dropdown option
+            // Format in HTML: "Name: Definition"
+            const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
+            const lensFull = selectedOptionText.split(":")[1].trim(); // Get everything after the colon
 
-            let finalPrompt = modes[mode].replace(/{PROJECT}/g, project).replace(/{LENS}/g, lens);
+            let finalPrompt = modes[mode].replace(/{PROJECT}/g, project).replace(/{LENS_FULL}/g, lensFull);
 
             outputModeSpan.textContent = mode;
             promptText.textContent = finalPrompt;
@@ -525,12 +524,13 @@
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const reflection = reflectionInput.value.trim();
             const file = evidenceInput.files[0];
-            const lens = methodologySelect.options[methodologySelect.selectedIndex].text.split(":")[0].trim();
+            const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
+            const lensName = selectedOptionText.split(":")[0].trim();
             
             const li = document.createElement('li');
             li.className = 'log-item';
             
-            let htmlContent = `<span class="log-time">[${timeString}]</span> Rolled <strong>${currentMode}</strong> via <strong>${lens}</strong> lens.`;
+            let htmlContent = `<span class="log-time">[${timeString}]</span> Rolled <strong>${currentMode}</strong> via <strong>${lensName}</strong> lens.`;
             
             if (reflection) {
                 htmlContent += `<span class="log-reflection">"${reflection}"</span>`;
@@ -567,14 +567,15 @@
             const doc = new jsPDF();
             
             const projectName = projectNameInput.value || "Untitled Project";
-            const lens = methodologySelect.options[methodologySelect.selectedIndex].text.split(":")[0].trim();
+            const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
+            const lensName = selectedOptionText.split(":")[0].trim();
             const date = new Date().toLocaleDateString();
 
             pdfContainer.innerHTML = `
                 <h2>Studio Iteration Log</h2>
                 <div class="meta">
                     <strong>Project:</strong> ${projectName}<br>
-                    <strong>Methodological Lens:</strong> ${lens}<br>
+                    <strong>Methodological Lens:</strong> ${lensName}<br>
                     <strong>Date:</strong> ${date}
                 </div>
                 <hr style="border: 1px solid #ddd; margin: 15px 0;">
@@ -619,7 +620,7 @@
                     heightLeft -= pageHeight;
                 }
 
-                doc.save(`Studio-Log-${projectName.replace(/\s+/g, '_')}-${lens.replace(/\s+/g, '_')}.pdf`);
+                doc.save(`Studio-Log-${projectName.replace(/\s+/g, '_')}-${lensName.replace(/\s+/g, '_')}.pdf`);
                 
                 pdfContainer.style.display = 'none';
             });
