@@ -274,6 +274,21 @@
         #pdf-container .entry-reflection { font-style: italic; margin: 5px 0; color: #333; }
         #pdf-container .entry-image { max-width: 100%; margin-top: 10px; border: 1px solid #ddd; }
         #pdf-container .entry-annotation { font-size: 0.9rem; color: #555; margin-top: 8px; font-style: italic; border-left: 2px solid #ccc; padding-left: 8px; }
+        
+        /* How To Use Box Styling */
+        .how-to-use {
+            background-color: rgba(255, 140, 0, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-radius: 4px;
+        }
+        [data-theme="dark"] .how-to-use {
+            background-color: rgba(255, 0, 127, 0.1);
+            border-left-color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
@@ -305,6 +320,22 @@
 
         <main id="main-content" class="dashboard-grid">
             
+            <!-- HOW TO USE SECTION (Placeholder for your text) -->
+            <section aria-labelledby="how-to-heading" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+                <div class="card">
+                    <h2 id="how-to-heading" style="font-size: 1.2rem; margin-bottom: 0.5rem;">How to Use This Tool</h2>
+                    <!-- PASTE YOUR TEXT HERE IN THE NEXT UPDATE -->
+                    <div class="how-to-use">
+                        <!-- Example text below - replace with your final version -->
+                        <strong>1. Select a Lens:</strong> Choose a methodological lens (e.g., Phenomenological) to guide your analysis.<br>
+                        <strong>2. Enter Context:</strong> Provide the project name, URL, and any specific constraints or notes.<br>
+                        <strong>3. Roll the Die:</strong> Click the box to randomly select a workflow mode (Think, Read, Write, Talk, Draw, Model).<br>
+                        <strong>4. Generate & Copy:</strong> The tool generates a tailored AI prompt. Copy it and paste it into your preferred AI chatbot.<br>
+                        <strong>5. Reflect & Save:</strong> Document your results, upload evidence, and export your session as a PDF.
+                    </div>
+                </div>
+            </section>
+
             <section aria-labelledby="context-heading">
                 <div class="card">
                     <h2 id="context-heading">1. Project Context</h2>
@@ -324,14 +355,11 @@
                         <option value="Structural">Structural: Focus on load paths, tectonics, construction methods, and structural expression.</option>
                         <option value="Contextual">Contextual: Focus on site conditions, urban fabric, history, and relationship to surroundings.</option>
                         <option value="Conceptual">Conceptual: Focus on the abstract 'parti', theoretical underpinnings, and symbolic meaning.</option>
-                        <option value="Critical">Critical: Focus on contradictions, limitations, social impact, and political implications.</option>
+                        <option value="Critical">Critical: Focus on contradictions, failures, social impact, and political implications.</option>
                     </select>
 
                     <label for="context-notes">Contextual Notes (Tertiary Filter)</label>
                     <textarea id="context-notes" style="height: 80px; margin-bottom: 1rem; width: 100%;" placeholder="Add specific details here (e.g., 'The site is on a steep slope', 'Client wants sustainable materials'). This will be included in the prompt."></textarea>
-                    <p class="form-help" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.4;">
-                        Keep notes concise (1–2 lines). These act as a filter to focus the AI’s response — e.g., “steep slope,” “ADA access required,” “historic facade preservation.” Avoid full sentences unless critical.
-                    </p>
 
                     <div style="margin-top: 1rem;">
                         <p style="font-size: 0.9rem; margin-bottom: 0.5rem; text-align: center;">Click the box to roll the die!</p>
@@ -345,9 +373,6 @@
                                 <div class="die-face face-5">Draw</div>
                                 <div class="die-face face-6">Model</div>
                             </div>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; margin-top: 8px;">
-                                Press <kbd>Space</kbd> or <kbd>Enter</kbd> to roll
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -370,9 +395,6 @@
                         <div class="action-row">
                             <button class="btn copy-btn" onclick="copyPrompt()">Copy Prompt</button>
                         </div>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); font-style: italic; margin-top: 12px;">
-                            Roll again to explore a different mode — iteration builds insight.
-                        </p>
 
                         <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
                         
@@ -400,8 +422,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2023 University of Idaho - Interior Architecture Studio.</p>
-            <p>Methodology based on "The Wrong Tool for the Right Job" abstract.</p>
+            <p>&copy; 2026 "Tharique De Silva" | University of Idaho</p>
         </footer>
     </div>
 
@@ -504,9 +525,9 @@
                     requestAnimationFrame(animateRoll);
                 } else {
                     die.style.transform = `rotateX(${totalX}deg) rotateY(${totalY}deg)`;
-                    isRolling = false;
                     setTimeout(() => {
                         generatePrompt(currentMode);
+                        isRolling = false;
                     }, 100);
                 }
             }
@@ -520,8 +541,7 @@
             let notes = contextNotesInput.value.trim() || "No specific contextual notes provided.";
             
             // Get the FULL text of the selected option (e.g., "Phenomenological: Focus on...")
-            const selectedOption = methodologySelect.options[methodologySelect.selectedIndex];
-            const selectedOptionText = selectedOption.label || selectedOption.textContent.trim();
+            const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
             const lensFull = selectedOptionText.trim();
 
             // Replace placeholders
@@ -535,15 +555,6 @@
             promptText.textContent = finalPrompt;
             promptOutput.style.display = "block";
             
-            // Announce to screen readers
-            const statusMessage = document.createElement('div');
-            statusMessage.setAttribute('aria-live', 'polite');
-            statusMessage.setAttribute('aria-atomic', 'true');
-            statusMessage.className = 'sr-only';
-            statusMessage.id = 'status-message';
-            document.body.appendChild(statusMessage);
-            statusMessage.textContent = `New prompt generated: ${currentMode} mode via ${lensFull.split(':')[0].trim()} lens.`;
-            
             reflectionInput.value = "";
             evidenceInput.value = "";
             annotationInput.value = "";
@@ -556,8 +567,7 @@
             const reflection = reflectionInput.value.trim();
             const file = evidenceInput.files[0];
             const annotation = annotationInput.value.trim();
-            const selectedOption = methodologySelect.options[methodologySelect.selectedIndex];
-            const selectedOptionText = selectedOption.label || selectedOption.textContent.trim();
+            const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
             const lensName = selectedOptionText.split(":")[0].trim();
             
             const li = document.createElement('li');
@@ -606,8 +616,7 @@
             const doc = new jsPDF();
             
             const projectName = projectNameInput.value || "Untitled Project";
-            const selectedOption = methodologySelect.options[methodologySelect.selectedIndex];
-            const selectedOptionText = selectedOption.label || selectedOption.textContent.trim();
+            const selectedOptionText = methodologySelect.options[methodologySelect.selectedIndex].text;
             const lensName = selectedOptionText.split(":")[0].trim();
             const date = new Date().toLocaleDateString();
 
@@ -653,13 +662,8 @@
             html2canvas(pdfContainer, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const imgWidth = 190; 
-                let imgHeight = (canvas.height * imgWidth) / canvas.width;
-                const MAX_IMG_HEIGHT = 120;
-                if (imgHeight > MAX_IMG_HEIGHT) {
-                    imgHeight = MAX_IMG_HEIGHT;
-                    const scaleFactor = MAX_IMG_HEIGHT / (canvas.height * 2);
-                    const imgWidth = (canvas.width * scaleFactor);
-                }
+                const pageHeight = 295; 
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
                 let heightLeft = imgHeight;
                 let position = 10; 
